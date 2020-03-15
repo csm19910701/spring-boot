@@ -70,7 +70,9 @@ public class AnnotationConfigServletWebServerApplicationContext
 	 * {@linkplain #refresh refreshed}.
 	 */
 	public AnnotationConfigServletWebServerApplicationContext() {
+		//组件注册
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+		//扫描器
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 

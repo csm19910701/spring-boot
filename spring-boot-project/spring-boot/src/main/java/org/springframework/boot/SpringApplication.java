@@ -304,28 +304,46 @@ public class SpringApplication {
 	 * @return a running {@link ApplicationContext}
 	 */
 	public ConfigurableApplicationContext run(String... args) {
+		//1：统计时间用的工具类
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		ConfigurableApplicationContext context = null;
 		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
 		configureHeadlessProperty();
+		//2：获取实现了SpringApplicationRunListener接口的实现类，通过SPI机制加载
+		// META-INF/spring.factories文件下的类
 		SpringApplicationRunListeners listeners = getRunListeners(args);
+
+		//3：首先调用SpringApplicationRunListener的starting方法
 		listeners.starting();
 		try {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(
 					args);
+
+			//4：处理配置数据
 			ConfigurableEnvironment environment = prepareEnvironment(listeners,
 					applicationArguments);
 			configureIgnoreBeanInfo(environment);
+
+			//5：启动时打印banner
 			Banner printedBanner = printBanner(environment);
+
+			//6：创建上下文对象，但是没有调用context的refresh()方法
 			context = createApplicationContext();
+
+			//7：获取SpringBootExceptionReporter接口类，异常报告
 			exceptionReporters = getSpringFactoriesInstances(
 					SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
 			prepareContext(context, environment, listeners, applicationArguments,
 					printedBanner);
+
+			//8：核心方法，启动spring容器
 			refreshContext(context);
+
 			afterRefresh(context, applicationArguments);
+
+			//9：统计结束
 			stopWatch.stop();
 			if (this.logStartupInfo) {
 				new StartupInfoLogger(this.mainApplicationClass)
@@ -417,6 +435,7 @@ public class SpringApplication {
 		// Use names and ensure unique to protect against duplicates
 		Set<String> names = new LinkedHashSet<>(
 				SpringFactoriesLoader.loadFactoryNames(type, classLoader));
+		//加载上来的后，反射实例化
 		List<T> instances = createSpringFactoriesInstances(type, parameterTypes,
 				classLoader, args, names);
 		AnnotationAwareOrderComparator.sort(instances);
