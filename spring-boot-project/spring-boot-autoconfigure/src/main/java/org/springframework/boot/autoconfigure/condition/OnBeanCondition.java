@@ -111,9 +111,12 @@ class OnBeanCondition extends FilteringSpringBootCondition implements Configurat
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		ConditionMessage matchMessage = ConditionMessage.empty();
+		//获取类注解信息
 		MergedAnnotations annotations = metadata.getAnnotations();
 		if (annotations.isPresent(ConditionalOnBean.class)) {
+			//包装一下
 			Spec<ConditionalOnBean> spec = new Spec<>(context, metadata, annotations, ConditionalOnBean.class);
+			//核心方法，其实就是判断spring容器是否含有ConditionOnBean注解的bean
 			MatchResult matchResult = getMatchingBeans(context, spec);
 			if (!matchResult.isAllMatched()) {
 				String reason = createOnBeanNoMatchReason(matchResult);
@@ -164,6 +167,7 @@ class OnBeanCondition extends FilteringSpringBootCondition implements Configurat
 		Set<String> beansIgnoredByType = getNamesOfBeansIgnoredByType(classLoader, beanFactory, considerHierarchy,
 				spec.getIgnoredTypes(), parameterizedContainers);
 		for (String type : spec.getTypes()) {
+			//这里明显是根据注解中的类型从spring容器中获取bean，如果能获取到说明匹配的
 			Collection<String> typeMatches = getBeanNamesForType(classLoader, considerHierarchy, beanFactory, type,
 					parameterizedContainers);
 			typeMatches.removeAll(beansIgnoredByType);

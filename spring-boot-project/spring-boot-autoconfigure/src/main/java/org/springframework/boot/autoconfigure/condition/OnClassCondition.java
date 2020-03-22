@@ -92,6 +92,7 @@ class OnClassCondition extends FilteringSpringBootCondition {
 		ConditionMessage matchMessage = ConditionMessage.empty();
 		List<String> onClasses = getCandidates(metadata, ConditionalOnClass.class);
 		if (onClasses != null) {
+			//核心方法过滤一下，其实就是class.forname 一下ConditionOnClass注解中的类，如果有异常那就说明没有此类
 			List<String> missing = filter(onClasses, ClassNameFilter.MISSING, classLoader);
 			if (!missing.isEmpty()) {
 				return ConditionOutcome.noMatch(ConditionMessage.forCondition(ConditionalOnClass.class)

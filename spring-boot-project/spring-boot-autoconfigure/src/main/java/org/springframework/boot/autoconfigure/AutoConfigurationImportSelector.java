@@ -113,12 +113,13 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			return EMPTY_ENTRY;
 		}
 		AnnotationAttributes attributes = getAttributes(annotationMetadata);
-		// SPI获取EnableAutoConfiguration为Key的所有实现类
+		// SPI获取EnableAutoConfiguration为Key的所有实现类，都是那些****EnableAutoConfiguration类
+		//SpringBoot：通过SPI加载配置文件的方式，把类加载到spring容器实例化
 		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
 		configurations = removeDuplicates(configurations);
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
 		checkExcludedClasses(configurations, exclusions);
-		// 把某些自动配置类过滤掉
+		// 把某些自动配置类过滤掉，并不是所有的类都要加载spring容器里面去
 		configurations.removeAll(exclusions);
 		configurations = filter(configurations, autoConfigurationMetadata);
 		fireAutoConfigurationImportEvents(configurations, exclusions);
@@ -171,6 +172,9 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 	 * @return a list of candidate configurations
 	 */
 	protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
+		//SpringBoot：通过SPI加载配置文件的方式，把类加载到spring容器实例化
+		//获取EnableAutoConfiguration为Key的所有实现类
+		//看到SpringFactoriesLoader.loadFactoryNames() 看到这个就是SpringBoot 需要使用SPI
 		List<String> configurations = SpringFactoriesLoader.loadFactoryNames(getSpringFactoriesLoaderFactoryClass(),
 				getBeanClassLoader());
 		Assert.notEmpty(configurations, "No auto configuration classes found in META-INF/spring.factories. If you "
@@ -389,20 +393,31 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			this.resourceLoader = resourceLoader;
 		}
 
+		/**
+		 * 收集EnableAutoConfiguration 类型的类
+		 * @param annotationMetadata
+		 * @param deferredImportSelector
+		 */
 		@Override
 		public void process(AnnotationMetadata annotationMetadata, DeferredImportSelector deferredImportSelector) {
 			Assert.state(deferredImportSelector instanceof AutoConfigurationImportSelector,
 					() -> String.format("Only %s implementations are supported, got %s",
 							AutoConfigurationImportSelector.class.getSimpleName(),
 							deferredImportSelector.getClass().getName()));
+			//收集Springboot工程里面所有EnableAutoConfiguration类
 			AutoConfigurationEntry autoConfigurationEntry = ((AutoConfigurationImportSelector) deferredImportSelector)
 					.getAutoConfigurationEntry(getAutoConfigurationMetadata(), annotationMetadata);
 			this.autoConfigurationEntries.add(autoConfigurationEntry);
+			//收集好后需要把autoConfigurationEntry add到spring容器，在ConfigurationClassPostProcessor 类里面实现的
 			for (String importClassName : autoConfigurationEntry.getConfigurations()) {
 				this.entries.putIfAbsent(importClassName, annotationMetadata);
 			}
 		}
 
+		/**
+		 * 将收集好的EnableAutoConfiguration类，通过ConfigurationClassPostProcessor将其变成BeanDefinition。托管到spring容器中
+		 * @return
+		 */
 		@Override
 		public Iterable<Entry> selectImports() {
 			if (this.autoConfigurationEntries.isEmpty()) {
