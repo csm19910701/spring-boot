@@ -319,7 +319,8 @@ public class SpringApplication {
 			//5：启动时打印banner
 			Banner printedBanner = printBanner(environment);
 
-			//6：创建上下文对象，但是没有调用context的refresh()方法
+			//6：创建上下文对象，但是没有调用context的refresh()方法，
+			// 在这个方法里面创建Spring上下文，并且把一些核心组件注册到spring上下文当中。比如ConfigurationClassPostProcessor
 			context = createApplicationContext();
 
 			//7：获取SpringBootExceptionReporter接口类，异常报告
