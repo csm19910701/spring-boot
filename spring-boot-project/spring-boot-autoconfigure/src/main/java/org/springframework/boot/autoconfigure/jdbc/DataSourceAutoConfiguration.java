@@ -63,6 +63,9 @@ public class DataSourceAutoConfiguration {
 
 	}
 
+	/**
+	 * springboot自带数据源
+	 */
 	@Configuration(proxyBeanMethods = false)
 	@Conditional(PooledDataSourceCondition.class)
 	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
