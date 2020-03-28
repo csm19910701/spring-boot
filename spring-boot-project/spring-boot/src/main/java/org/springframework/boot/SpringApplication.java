@@ -267,9 +267,13 @@ public class SpringApplication {
 	public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
+		//1、先把主类保存起来
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+		//2、判断运行项目的类型
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
+		//3、扫描当前路径下META-INF/spring.factories文件的，加载ApplicationContextInitializer接口实例
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+		//4、扫描当前路径下META-INF/spring.factories文件的，加载ApplicationListener接口实例
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
